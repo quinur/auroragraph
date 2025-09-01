@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(AuroraGraphGUI LANGUAGES CXX)
 
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+
+# Qt6 is discovered in the parent project, so the Qt6::Widgets target should
+# already be available.
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

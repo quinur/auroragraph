@@ -86,7 +86,13 @@ add_executable(aurora_cli
 target_include_directories(aurora_cli PUBLIC include)
 target_link_libraries(aurora_cli PRIVATE aurora_core linenoise)
 
-add_subdirectory(gui)
+# Build GUI only if Qt6 is available
+find_package(Qt6 COMPONENTS Widgets QUIET)
+if(Qt6_FOUND)
+  add_subdirectory(gui)
+else()
+  message(STATUS "Qt6 not found; skipping GUI build")
+endif()
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
