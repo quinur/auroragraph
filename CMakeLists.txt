@@ -21,6 +21,9 @@ endif()
 add_library(aurora_core STATIC
   src/core/graph.cpp
   src/core/storage.cpp
+  src/algo/bfs.cpp
+  src/algo/dfs.cpp
+  src/algo/dijkstra.cpp
 )
 
 target_include_directories(aurora_core
@@ -30,6 +33,12 @@ target_include_directories(aurora_core
 )
 
 target_compile_options(aurora_core PRIVATE -Wall -Wextra -Wpedantic)
+
+install(FILES
+  include/aurora/algo/bfs.hpp
+  include/aurora/algo/dfs.hpp
+  include/aurora/algo/dijkstra.hpp
+  DESTINATION include/aurora/algo)
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
