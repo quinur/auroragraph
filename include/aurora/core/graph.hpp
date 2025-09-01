@@ -10,6 +10,9 @@
 namespace aurora {
 
 class Storage; // forward declaration
+namespace storage {
+class Snapshot;
+}
 
 class Graph {
 public:
@@ -49,6 +52,7 @@ private:
   EdgeId next_edge_id_ = 1;
 
   friend class Storage;
+  friend class storage::Snapshot;
 };
 
 } // namespace aurora
