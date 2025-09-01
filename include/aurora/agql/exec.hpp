@@ -25,6 +25,11 @@ struct QueryResult {
 
 class Executor {
 public:
+  struct Binding {
+    std::unordered_map<std::string, NodeId> nodes;
+    std::unordered_map<std::string, EdgeId> edges;
+  };
+
   explicit Executor(Graph& g);
 
   QueryResult run(const Script& script);
@@ -48,8 +53,6 @@ private:
   };
   std::unordered_map<IndexKey, Index, IndexKeyHash> indexes_;
   bool last_match_used_index_ = false;
-
-  using Binding = std::unordered_map<std::string, NodeId>;
   std::vector<NodeId> match_node_pattern(const NodePattern& np);
   bool match_node(NodeId id, const NodePattern& np) const;
   std::vector<Binding> match_pattern(const Pattern& pat);

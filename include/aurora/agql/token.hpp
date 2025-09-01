@@ -8,6 +8,7 @@ enum class TokenKind {
   End,
   // keywords
   Create, Match, Where, Return, And, Or, Not, As,
+  Set, Delete, Detach, Remove,
   // symbols
   LParen, RParen, LBrace, RBrace, LBracket, RBracket,
   Colon, Comma, Dot, Semicolon,

@@ -107,6 +107,10 @@ struct Lexer {
     else if (upper=="TRUE") add(TokenKind::True, lexeme, l, c);
     else if (upper=="FALSE") add(TokenKind::False, lexeme, l, c);
     else if (upper=="NULL") add(TokenKind::Null, lexeme, l, c);
+    else if (upper=="SET") add(TokenKind::Set, lexeme, l, c);
+    else if (upper=="DELETE") add(TokenKind::Delete, lexeme, l, c);
+    else if (upper=="DETACH") add(TokenKind::Detach, lexeme, l, c);
+    else if (upper=="REMOVE") add(TokenKind::Remove, lexeme, l, c);
     else add(TokenKind::Ident, lexeme, l, c);
   }
 

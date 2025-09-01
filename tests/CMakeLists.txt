@@ -18,6 +18,9 @@ add_executable(aurora_tests
   test_agql_lexer.cpp
   test_agql_parser.cpp
   test_agql_exec_basic.cpp
+  test_agql_lexer_ext.cpp
+  test_agql_parser_ext.cpp
+  test_agql_exec_mutation.cpp
   test_index.cpp
   test_agql_match_index.cpp
 )

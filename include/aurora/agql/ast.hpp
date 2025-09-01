@@ -43,6 +43,7 @@ struct NodePattern {
 };
 
 struct RelPattern {
+  std::optional<std::string> var;
   std::optional<std::string> label;
   std::optional<PropMap> props;
 };
@@ -57,6 +58,18 @@ struct Pattern {
 struct StmtCreateNode { NodePattern node; };
 struct StmtCreateEdge { NodePattern left; RelPattern rel; NodePattern right; };
 
+struct SetProp { std::string var; std::string key; Expr value; };
+struct SetAddLabel { std::string var; std::string label; };
+using SetItem = std::variant<SetProp, SetAddLabel>;
+struct StmtSet { std::vector<SetItem> items; };
+
+struct RemoveProp { std::string var; std::string key; };
+struct RemoveLabel { std::string var; std::string label; };
+using RemoveItem = std::variant<RemoveProp, RemoveLabel>;
+struct StmtRemove { std::vector<RemoveItem> items; };
+
+struct StmtDelete { bool detach; std::vector<std::string> vars; };
+
 struct ReturnItem {
   Expr expr;
   std::optional<std::string> alias;
@@ -67,7 +80,8 @@ struct StmtMatch {
   std::vector<ReturnItem> ret;
 };
 
-using Stmt = std::variant<StmtCreateNode, StmtCreateEdge, StmtMatch>;
+using Stmt = std::variant<StmtCreateNode, StmtCreateEdge, StmtMatch,
+                          StmtSet, StmtRemove, StmtDelete>;
 
 struct Script { std::vector<Stmt> stmts; };
 
