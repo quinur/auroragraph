@@ -24,6 +24,9 @@ add_library(aurora_core STATIC
   src/algo/bfs.cpp
   src/algo/dfs.cpp
   src/algo/dijkstra.cpp
+  src/agql/lexer.cpp
+  src/agql/parser.cpp
+  src/agql/exec.cpp
 )
 
 target_include_directories(aurora_core
@@ -39,6 +42,15 @@ install(FILES
   include/aurora/algo/dfs.hpp
   include/aurora/algo/dijkstra.hpp
   DESTINATION include/aurora/algo)
+
+install(FILES
+  include/aurora/agql/token.hpp
+  include/aurora/agql/lexer.hpp
+  include/aurora/agql/ast.hpp
+  include/aurora/agql/parser.hpp
+  include/aurora/agql/exec.hpp
+  include/aurora/agql/errors.hpp
+  DESTINATION include/aurora/agql)
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
