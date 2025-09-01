@@ -11,6 +11,8 @@ FetchContent_MakeAvailable(googletest)
 add_executable(aurora_tests
   test_graph_basic.cpp
   test_storage_jsonl.cpp
+  test_algo_bfs_dfs.cpp
+  test_algo_dijkstra.cpp
 )
 
 target_link_libraries(aurora_tests PRIVATE aurora_core gtest_main)
