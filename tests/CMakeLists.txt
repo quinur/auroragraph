@@ -23,6 +23,10 @@ add_executable(aurora_tests
   test_agql_exec_mutation.cpp
   test_index.cpp
   test_agql_match_index.cpp
+  test_wal.cpp
+  test_snapshot_recovery.cpp
+  test_mempool.cpp
+  test_parallel_algo.cpp
 )
 
 target_link_libraries(aurora_tests PRIVATE aurora_core gtest_main)

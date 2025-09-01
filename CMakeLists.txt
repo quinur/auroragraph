@@ -27,6 +27,11 @@ add_library(aurora_core STATIC
   src/algo/dijkstra.cpp
   src/algo/pagerank.cpp
   src/algo/components.cpp
+  src/algo/parallel.cpp
+  src/storage/wal.cpp
+  src/storage/snapshot.cpp
+  src/storage/recovery.cpp
+  src/storage/mempool.cpp
   src/agql/lexer.cpp
   src/agql/parser.cpp
   src/agql/exec.cpp
@@ -39,6 +44,8 @@ target_include_directories(aurora_core
 )
 
 target_compile_options(aurora_core PRIVATE -Wall -Wextra -Wpedantic)
+find_package(Threads REQUIRED)
+target_link_libraries(aurora_core PUBLIC Threads::Threads)
 
 install(FILES
   include/aurora/algo/bfs.hpp
@@ -63,6 +70,9 @@ install(FILES
 
 add_executable(aurora_bench bench/benchmark_queries.cpp)
 target_link_libraries(aurora_bench PRIVATE aurora_core)
+
+add_executable(aurora_scaling bench/benchmark_scaling.cpp)
+target_link_libraries(aurora_scaling PRIVATE aurora_core)
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
