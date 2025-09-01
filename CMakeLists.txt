@@ -86,6 +86,8 @@ add_executable(aurora_cli
 target_include_directories(aurora_cli PUBLIC include)
 target_link_libraries(aurora_cli PRIVATE aurora_core linenoise)
 
+add_subdirectory(gui)
+
 if(AURORA_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)

@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="/">
+    <file>qdark.qss</file>
+    <file>icons/open.svg</file>
+    <file>icons/save.svg</file>
+    <file>icons/play.svg</file>
+    <file>icons/stop.svg</file>
+    <file>icons/zoom_in.svg</file>
+    <file>icons/zoom_out.svg</file>
+    <file>icons/layout.svg</file>
+    <file>icons/theme.svg</file>
+  </qresource>
+</RCC>
