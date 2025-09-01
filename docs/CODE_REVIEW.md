@@ -10,7 +10,8 @@ missing, allowing headless builds and tests to succeed.
   hard failure on systems without Qt6.
 - **Documentation:** Updated `README.md` to note that the GUI is skipped when Qt6
   is absent.
+- **AGQL Lexer:** Fixed misleading indentation and initializer warnings in
+  `src/agql/lexer.cpp`.
 
 ## Testing
-- `./install.sh` builds the project and runs the unit tests. All tests pass when
-  Qt6 is unavailable.
+- `cmake --build build` followed by `ctest` runs the full unit test suite.
