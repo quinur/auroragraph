@@ -13,7 +13,8 @@ int main(){
     // basic graph operations
     auto n1 = g.add_node({"User"}, {{"name", Text{"Ada"}}});
     auto n2 = g.add_node();
-    auto e = g.add_edge(n1, n2, {"FOLLOWS"}, {{"w", Real{1.0}}});
+  
+    g.add_edge(n1, n2, {"FOLLOWS"}, {{"w", Real{1.0}}});
     assert(g.node_count() == 2);
     assert(g.edge_count() == 1);
 
