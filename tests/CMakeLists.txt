@@ -13,9 +13,13 @@ add_executable(aurora_tests
   test_storage_jsonl.cpp
   test_algo_bfs_dfs.cpp
   test_algo_dijkstra.cpp
+  test_algo_pagerank.cpp
+  test_algo_components.cpp
   test_agql_lexer.cpp
   test_agql_parser.cpp
   test_agql_exec_basic.cpp
+  test_index.cpp
+  test_agql_match_index.cpp
 )
 
 target_link_libraries(aurora_tests PRIVATE aurora_core gtest_main)

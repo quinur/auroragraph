@@ -157,46 +157,6 @@ std::string default_column_name(const Expr& e){
   }, e);
 }
 
-std::vector<NodeId> match_node_pattern(Graph& g, const NodePattern& np){
-  std::vector<NodeId> res;
-  for(NodeId id=1; id<=g.node_count(); ++id){
-    const Node* n = g.get_node(id); if(!n) continue;
-    if(np.label && !node_has_label(*n,*np.label)) continue;
-    if(np.props && !match_node_props(*n,*np.props)) continue;
-    res.push_back(id);
-  }
-  return res;
-}
-
-bool match_node(Graph& g, NodeId id, const NodePattern& np){
-  const Node* n = g.get_node(id); if(!n) return false;
-  if(np.label && !node_has_label(*n,*np.label)) return false;
-  if(np.props && !match_node_props(*n,*np.props)) return false;
-  return true;
-}
-
-std::vector<Binding> match_pattern(Graph& g, const Pattern& pat){
-  std::vector<Binding> binds;
-  auto left_nodes = match_node_pattern(g, pat.left);
-  if(!pat.rel){
-    for(NodeId id : left_nodes){
-      Binding b; if(pat.left.var) b[*pat.left.var]=id; binds.push_back(std::move(b));
-    }
-  } else {
-    for(NodeId src : left_nodes){
-      for(EdgeId eid : g.out_edges(src)){
-        const Edge* e = g.get_edge(eid); if(!e) continue;
-        if(pat.rel->label && std::find(e->labels.begin(), e->labels.end(), *pat.rel->label)==e->labels.end()) continue;
-        if(pat.rel->props && !match_edge_props(*e, *pat.rel->props)) continue;
-        NodeId dst = e->dst;
-        if(pat.right && !match_node(g,dst,*pat.right)) continue;
-        Binding b; if(pat.left.var) b[*pat.left.var]=src; if(pat.right && pat.right->var) b[*pat.right->var]=dst; binds.push_back(std::move(b));
-      }
-    }
-  }
-  return binds;
-}
-
 } // namespace
 
 Executor::Executor(Graph& g) : g_(g) {}
@@ -209,7 +169,9 @@ QueryResult Executor::run(const Script& script){
       if constexpr(std::is_same_v<T,StmtCreateNode>){
         Properties props = to_properties(s.node.props);
         std::vector<std::string> labels; if(s.node.label) labels.push_back(*s.node.label);
-        g_.add_node(std::move(labels), std::move(props));
+        NodeId nid = g_.add_node(std::move(labels), std::move(props));
+        const Node* n = g_.get_node(nid);
+        for(auto& kv : indexes_) kv.second.on_node_added(*n);
         res.nodes_created++;
       } else if constexpr(std::is_same_v<T,StmtCreateEdge>){
         auto find_or_create = [&](const NodePattern& np){
@@ -229,7 +191,8 @@ QueryResult Executor::run(const Script& script){
         g_.add_edge(src,dst,std::move(labels),std::move(props));
         res.edges_created++;
       } else if constexpr(std::is_same_v<T,StmtMatch>){
-        auto bindings = match_pattern(g_, s.pattern);
+        last_match_used_index_ = false;
+        auto bindings = match_pattern(s.pattern);
         std::vector<Binding> filtered;
         for(auto& b : bindings){ if(!s.where || eval_bool(g_, *s.where, b)) filtered.push_back(b); }
         for(auto& b : filtered){
@@ -238,6 +201,65 @@ QueryResult Executor::run(const Script& script){
     }, st);
   }
   return res;
+}
+
+void Executor::register_index(const std::string& label, const std::string& key){
+  IndexKey k{label, key};
+  indexes_.erase(k);
+  indexes_.emplace(k, Index(g_, label, key));
+}
+
+std::vector<NodeId> Executor::match_node_pattern(const NodePattern& np){
+  if (np.label && np.props && np.props->items.size() == 1) {
+    const auto& pp = np.props->items[0];
+    IndexKey key{*np.label, pp.key};
+    auto it = indexes_.find(key);
+    if (it != indexes_.end()) {
+      Value val = to_value(pp.value);
+      auto ids = it->second.find(val);
+      last_match_used_index_ = true;
+      std::vector<NodeId> res;
+      for (NodeId id : ids) {
+        if (match_node(id, np)) res.push_back(id);
+      }
+      return res;
+    }
+  }
+  std::vector<NodeId> res;
+  for(NodeId id=1; id<=g_.node_count(); ++id){
+    if(match_node(id,np)) res.push_back(id);
+  }
+  return res;
+}
+
+bool Executor::match_node(NodeId id, const NodePattern& np) const{
+  const Node* n = g_.get_node(id); if(!n) return false;
+  if(np.label && !node_has_label(*n,*np.label)) return false;
+  if(np.props && !match_node_props(*n,*np.props)) return false;
+  return true;
+}
+
+std::vector<Executor::Binding> Executor::match_pattern(const Pattern& pat){
+  using Binding = Executor::Binding;
+  std::vector<Binding> binds;
+  auto left_nodes = match_node_pattern(pat.left);
+  if(!pat.rel){
+    for(NodeId id : left_nodes){
+      Binding b; if(pat.left.var) b[*pat.left.var]=id; binds.push_back(std::move(b));
+    }
+  } else {
+    for(NodeId src : left_nodes){
+      for(EdgeId eid : g_.out_edges(src)){
+        const Edge* e = g_.get_edge(eid); if(!e) continue;
+        if(pat.rel->label && std::find(e->labels.begin(), e->labels.end(), *pat.rel->label)==e->labels.end()) continue;
+        if(pat.rel->props && !match_edge_props(*e, *pat.rel->props)) continue;
+        NodeId dst = e->dst;
+        if(pat.right && !match_node(dst,*pat.right)) continue;
+        Binding b; if(pat.left.var) b[*pat.left.var]=src; if(pat.right && pat.right->var) b[*pat.right->var]=dst; binds.push_back(std::move(b));
+      }
+    }
+  }
+  return binds;
 }
 
 } // namespace aurora::agql

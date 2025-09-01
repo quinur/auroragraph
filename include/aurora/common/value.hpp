@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -88,3 +89,23 @@ inline void from_json(const nlohmann::json& j, Properties& props) {
 }
 
 } // namespace aurora
+
+namespace std {
+
+template <> struct hash<aurora::Value> {
+  size_t operator()(const aurora::Value& v) const noexcept {
+    size_t idx = v.index();
+    return std::visit(
+        [idx](auto&& arg) -> size_t {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, std::monostate>) {
+            return idx;
+          } else {
+            return std::hash<T>{}(arg) ^ (idx << 1);
+          }
+        },
+        v);
+  }
+};
+
+} // namespace std
