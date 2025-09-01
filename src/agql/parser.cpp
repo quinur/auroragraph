@@ -47,14 +47,16 @@ struct Parser {
       Pattern pat = parse_pattern();
       std::optional<Expr> where;
       if(match(TokenKind::Where)) where = parse_expr();
-      expect(TokenKind::Return, "RETURN");
       std::vector<ReturnItem> items;
-      items.push_back(parse_return_item());
-      while(match(TokenKind::Comma)) items.push_back(parse_return_item());
+      if(match(TokenKind::Return)){
+        items.push_back(parse_return_item());
+        while(match(TokenKind::Comma)) items.push_back(parse_return_item());
+      }
       // validate variable usage
       std::unordered_set<std::string> allowed;
       if(pat.left.var) allowed.insert(*pat.left.var);
       if(pat.right && pat.right->var) allowed.insert(*pat.right->var);
+      if(pat.rel && pat.rel->var) allowed.insert(*pat.rel->var);
       auto check_vars=[&](const Expr& e){
         std::unordered_set<std::string> used;
         collect_vars(e, used);
@@ -63,6 +65,22 @@ struct Parser {
       if(where) check_vars(*where);
       for(const auto& it:items) check_vars(it.expr);
       return StmtMatch{pat, std::move(where), std::move(items)};
+    } else if(match(TokenKind::Set)) {
+      std::vector<SetItem> items;
+      items.push_back(parse_set_item());
+      while(match(TokenKind::Comma)) items.push_back(parse_set_item());
+      return StmtSet{std::move(items)};
+    } else if(match(TokenKind::Remove)) {
+      std::vector<RemoveItem> items;
+      items.push_back(parse_remove_item());
+      while(match(TokenKind::Comma)) items.push_back(parse_remove_item());
+      return StmtRemove{std::move(items)};
+    } else if(match(TokenKind::Delete)) {
+      bool detach = match(TokenKind::Detach);
+      std::vector<std::string> vars;
+      vars.push_back(expect(TokenKind::Ident, "variable").lexeme);
+      while(match(TokenKind::Comma)) vars.push_back(expect(TokenKind::Ident, "variable").lexeme);
+      return StmtDelete{detach, std::move(vars)};
     }
     error("Unknown statement");
   }
@@ -82,6 +100,9 @@ struct Parser {
 
   RelPattern parse_rel_body(){
     RelPattern r;
+    if(match(TokenKind::Ident)){
+      r.var = prev().lexeme;
+    }
     if(match(TokenKind::Colon)) r.label = expect(TokenKind::Ident, "relationship type").lexeme;
     if(match(TokenKind::LBrace)){
       r.props = PropMap{};
@@ -133,6 +154,32 @@ struct Parser {
     std::optional<std::string> alias;
     if(match(TokenKind::As)) alias = expect(TokenKind::Ident, "alias").lexeme;
     return ReturnItem{std::move(e), std::move(alias)};
+  }
+
+  SetItem parse_set_item(){
+    std::string var = expect(TokenKind::Ident, "variable").lexeme;
+    if(match(TokenKind::Dot)){
+      std::string key = expect(TokenKind::Ident, "property").lexeme;
+      expect(TokenKind::Equal, "=");
+      Expr val = parse_expr();
+      return SetProp{var, key, std::move(val)};
+    } else if(match(TokenKind::Colon)){
+      std::string label = expect(TokenKind::Ident, "label").lexeme;
+      return SetAddLabel{var, label};
+    }
+    error("Invalid SET item");
+  }
+
+  RemoveItem parse_remove_item(){
+    std::string var = expect(TokenKind::Ident, "variable").lexeme;
+    if(match(TokenKind::Dot)){
+      std::string key = expect(TokenKind::Ident, "property").lexeme;
+      return RemoveProp{var, key};
+    } else if(match(TokenKind::Colon)){
+      std::string label = expect(TokenKind::Ident, "label").lexeme;
+      return RemoveLabel{var, label};
+    }
+    error("Invalid REMOVE item");
   }
 
   // Expression parsing
