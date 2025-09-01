@@ -1,12 +1,14 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "aurora/agql/ast.hpp"
 #include "aurora/core/graph.hpp"
+#include "aurora/core/index.hpp"
 
 namespace aurora::agql {
 
@@ -27,8 +29,30 @@ public:
 
   QueryResult run(const Script& script);
 
+  void register_index(const std::string& label, const std::string& key);
+  bool last_match_used_index() const { return last_match_used_index_; }
+
 private:
   Graph& g_;
+  struct IndexKey {
+    std::string label;
+    std::string key;
+    bool operator==(const IndexKey& other) const {
+      return label == other.label && key == other.key;
+    }
+  };
+  struct IndexKeyHash {
+    size_t operator()(const IndexKey& k) const noexcept {
+      return std::hash<std::string>{}(k.label) ^ (std::hash<std::string>{}(k.key) << 1);
+    }
+  };
+  std::unordered_map<IndexKey, Index, IndexKeyHash> indexes_;
+  bool last_match_used_index_ = false;
+
+  using Binding = std::unordered_map<std::string, NodeId>;
+  std::vector<NodeId> match_node_pattern(const NodePattern& np);
+  bool match_node(NodeId id, const NodePattern& np) const;
+  std::vector<Binding> match_pattern(const Pattern& pat);
 };
 
 } // namespace aurora::agql

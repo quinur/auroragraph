@@ -21,9 +21,12 @@ endif()
 add_library(aurora_core STATIC
   src/core/graph.cpp
   src/core/storage.cpp
+  src/core/index.cpp
   src/algo/bfs.cpp
   src/algo/dfs.cpp
   src/algo/dijkstra.cpp
+  src/algo/pagerank.cpp
+  src/algo/components.cpp
   src/agql/lexer.cpp
   src/agql/parser.cpp
   src/agql/exec.cpp
@@ -41,6 +44,8 @@ install(FILES
   include/aurora/algo/bfs.hpp
   include/aurora/algo/dfs.hpp
   include/aurora/algo/dijkstra.hpp
+  include/aurora/algo/pagerank.hpp
+  include/aurora/algo/components.hpp
   DESTINATION include/aurora/algo)
 
 install(FILES
@@ -51,6 +56,13 @@ install(FILES
   include/aurora/agql/exec.hpp
   include/aurora/agql/errors.hpp
   DESTINATION include/aurora/agql)
+
+install(FILES
+  include/aurora/core/index.hpp
+  DESTINATION include/aurora/core)
+
+add_executable(aurora_bench bench/benchmark_queries.cpp)
+target_link_libraries(aurora_bench PRIVATE aurora_core)
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
