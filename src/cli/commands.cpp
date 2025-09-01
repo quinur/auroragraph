@@ -10,7 +10,8 @@
 #include "aurora/storage/recovery.hpp"
 #include "aurora/storage/snapshot.hpp"
 #include "aurora/core/storage.hpp"
-#include "linenoise.h"
+#include <fstream>
+#include <cstdlib>
 
 namespace aurora::cli {
 
@@ -112,7 +113,23 @@ bool CommandDispatcher::handle(const std::string& line) {
   } else if (cmd == "quit" || cmd == "exit") {
     quit_ = true;
   } else if (cmd == "clear") {
-    linenoiseClearScreen();
+#ifdef _WIN32
+    std::system("cls");
+#else
+    std::cout << "\x1B[2J\x1B[H";
+#endif
+  } else if (cmd == "history") {
+    std::ifstream f(cfg_.history_path);
+    if (!f) {
+      print_error("no history");
+    } else {
+      std::string h;
+      size_t count = 0;
+      while (std::getline(f, h) && count < 20) {
+        print_info(h);
+        ++count;
+      }
+    }
   } else if (cmd == "stats") {
     size_t nodes = g_.node_count();
     size_t edges = g_.edge_count();
