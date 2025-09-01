@@ -133,8 +133,8 @@ struct Lexer {
     std::string lexeme(input.substr(start, pos - start));
     std::string upper;
     upper.reserve(lexeme.size());
-    for (char ch : lexeme)
-      upper.push_back(std::toupper(static_cast<unsigned char>(ch)));
+      for (char ch : lexeme)
+        upper.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(ch))));
     if (upper == "CREATE")
       add(TokenKind::Create, lexeme, l, c);
     else if (upper == "MATCH")
