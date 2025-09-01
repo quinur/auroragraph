@@ -12,6 +12,7 @@ algorithms and query processing.
 ```
 
 This script configures and builds the project in `build/` and runs the unit tests.
+If Qt6 is not available, the GUI target is skipped.
 
 ## JSONL Format
 
