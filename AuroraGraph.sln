@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AuroraCore", "AuroraCore.vcxproj", "{36F46802-DC37-40F7-994B-E9F1AF281459}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AuroraCLI", "AuroraCLI.vcxproj", "{7461E7C5-8591-45C2-B5E7-73A6B216CAA6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AuroraGraphGUI", "AuroraGraphGUI.vcxproj", "{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AuroraTests", "AuroraTests.vcxproj", "{0EBEC763-EBE2-4C6B-A89E-2FC81E2B03C7}"
+EndProject
+Global
+GlobalSection(SolutionConfigurationPlatforms) = preSolution
+Debug|x64 = Debug|x64
+Release|x64 = Release|x64
+EndGlobalSection
+GlobalSection(ProjectConfigurationPlatforms) = postSolution
+{36F46802-DC37-40F7-994B-E9F1AF281459}.Debug|x64.ActiveCfg = Debug|x64
+{36F46802-DC37-40F7-994B-E9F1AF281459}.Debug|x64.Build.0 = Debug|x64
+{36F46802-DC37-40F7-994B-E9F1AF281459}.Release|x64.ActiveCfg = Release|x64
+{36F46802-DC37-40F7-994B-E9F1AF281459}.Release|x64.Build.0 = Release|x64
+{7461E7C5-8591-45C2-B5E7-73A6B216CAA6}.Debug|x64.ActiveCfg = Debug|x64
+{7461E7C5-8591-45C2-B5E7-73A6B216CAA6}.Debug|x64.Build.0 = Debug|x64
+{7461E7C5-8591-45C2-B5E7-73A6B216CAA6}.Release|x64.ActiveCfg = Release|x64
+{7461E7C5-8591-45C2-B5E7-73A6B216CAA6}.Release|x64.Build.0 = Release|x64
+{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}.Debug|x64.ActiveCfg = Debug|x64
+{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}.Debug|x64.Build.0 = Debug|x64
+{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}.Release|x64.ActiveCfg = Release|x64
+{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}.Release|x64.Build.0 = Release|x64
+{0EBEC763-EBE2-4C6B-A89E-2FC81E2B03C7}.Debug|x64.ActiveCfg = Debug|x64
+{0EBEC763-EBE2-4C6B-A89E-2FC81E2B03C7}.Debug|x64.Build.0 = Debug|x64
+{0EBEC763-EBE2-4C6B-A89E-2FC81E2B03C7}.Release|x64.ActiveCfg = Release|x64
+{0EBEC763-EBE2-4C6B-A89E-2FC81E2B03C7}.Release|x64.Build.0 = Release|x64
+EndGlobalSection
+GlobalSection(SolutionProperties) = preSolution
+HideSolutionNode = FALSE
+EndGlobalSection
+EndGlobal
