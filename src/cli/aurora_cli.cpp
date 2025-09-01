@@ -5,6 +5,7 @@
 #include "aurora/cli/colors.hpp"
 #include "aurora/cli/printer.hpp"
 #include "aurora/cli/repl.hpp"
+#include "aurora/cli/platform.hpp"
 #include "aurora/storage/recovery.hpp"
 #include "aurora/storage/snapshot.hpp"
 #include "aurora/core/storage.hpp"
@@ -43,9 +44,20 @@ int main(int argc, char** argv) {
   }
 
   cli::CliConfig cfg;
-  const char* home = getenv("HOME");
+#ifdef _WIN32
+  const char* local = std::getenv("LOCALAPPDATA");
+  if (local) {
+    auto dir = std::filesystem::path(local) / "AuroraGraph";
+    std::filesystem::create_directories(dir);
+    cfg.history_path = dir / "history.txt";
+  } else {
+    cfg.history_path = "history.txt";
+  }
+#else
+  const char* home = std::getenv("HOME");
   if (home) cfg.history_path = std::filesystem::path(home) / ".aurora_history";
   else cfg.history_path = ".aurora_history";
+#endif
 
   return cli::repl(g, cfg);
 }
