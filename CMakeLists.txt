@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(AuroraGraph LANGUAGES CXX)
+project(AuroraGraph LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -73,6 +73,18 @@ target_link_libraries(aurora_bench PRIVATE aurora_core)
 
 add_executable(aurora_scaling bench/benchmark_scaling.cpp)
 target_link_libraries(aurora_scaling PRIVATE aurora_core)
+
+add_library(linenoise STATIC third_party/linenoise.c)
+target_include_directories(linenoise PUBLIC third_party)
+
+add_executable(aurora_cli
+  src/cli/aurora_cli.cpp
+  src/cli/repl.cpp
+  src/cli/printer.cpp
+  src/cli/commands.cpp
+  src/cli/platform.cpp)
+target_include_directories(aurora_cli PUBLIC include)
+target_link_libraries(aurora_cli PRIVATE aurora_core linenoise)
 
 if(AURORA_BUILD_TESTS)
   enable_testing()
