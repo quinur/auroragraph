@@ -47,6 +47,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(QtDir)\include;$(QtDir)\include\QtCore;$(QtDir)\include\QtGui;$(QtDir)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -95,7 +96,7 @@
   <ItemGroup>
     <CustomBuild Include="gui\resources\aurora.qrc">
       <Message>rcc %(Identity)</Message>
-      <Command>"$(QtDir)\bin\rcc.exe" -name aurora -o "$(IntDir)qrc_aurora.cpp" "%(FullPath)"</Command>
+      <Command>"$(QTDIR)\bin\rcc.exe" -name aurora -o "$(IntDir)qrc_aurora.cpp" "%(FullPath)"</Command>
       <Outputs>$(IntDir)qrc_aurora.cpp</Outputs>
     </CustomBuild>
     <ClCompile Include="$(IntDir)qrc_aurora.cpp" />
