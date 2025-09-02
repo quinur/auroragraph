@@ -131,6 +131,59 @@ Scalar eval_simple(Graph& g, const Expr& e, const Binding& b, const Executor::Pa
       auto it = params.find(node.name);
       if(it==params.end()) return Null{};
       return from_value(it->second);
+    } else if constexpr(std::is_same_v<T,ExprAdd>){
+      Scalar l = eval_simple(g, *node.lhs, b, params);
+      Scalar r = eval_simple(g, *node.rhs, b, params);
+      if((std::holds_alternative<int64_t>(l) || std::holds_alternative<double>(l)) &&
+         (std::holds_alternative<int64_t>(r) || std::holds_alternative<double>(r))){
+        if(std::holds_alternative<double>(l) || std::holds_alternative<double>(r)){
+          double lv = std::holds_alternative<double>(l)?std::get<double>(l):std::get<int64_t>(l);
+          double rv = std::holds_alternative<double>(r)?std::get<double>(r):std::get<int64_t>(r);
+          return lv + rv;
+        } else {
+          return std::get<int64_t>(l) + std::get<int64_t>(r);
+        }
+      }
+      return Null{};
+    } else if constexpr(std::is_same_v<T,ExprSub>){
+      Scalar l = eval_simple(g, *node.lhs, b, params);
+      Scalar r = eval_simple(g, *node.rhs, b, params);
+      if((std::holds_alternative<int64_t>(l) || std::holds_alternative<double>(l)) &&
+         (std::holds_alternative<int64_t>(r) || std::holds_alternative<double>(r))){
+        if(std::holds_alternative<double>(l) || std::holds_alternative<double>(r)){
+          double lv = std::holds_alternative<double>(l)?std::get<double>(l):std::get<int64_t>(l);
+          double rv = std::holds_alternative<double>(r)?std::get<double>(r):std::get<int64_t>(r);
+          return lv - rv;
+        } else {
+          return std::get<int64_t>(l) - std::get<int64_t>(r);
+        }
+      }
+      return Null{};
+    } else if constexpr(std::is_same_v<T,ExprMul>){
+      Scalar l = eval_simple(g, *node.lhs, b, params);
+      Scalar r = eval_simple(g, *node.rhs, b, params);
+      if((std::holds_alternative<int64_t>(l) || std::holds_alternative<double>(l)) &&
+         (std::holds_alternative<int64_t>(r) || std::holds_alternative<double>(r))){
+        if(std::holds_alternative<double>(l) || std::holds_alternative<double>(r)){
+          double lv = std::holds_alternative<double>(l)?std::get<double>(l):std::get<int64_t>(l);
+          double rv = std::holds_alternative<double>(r)?std::get<double>(r):std::get<int64_t>(r);
+          return lv * rv;
+        } else {
+          return std::get<int64_t>(l) * std::get<int64_t>(r);
+        }
+      }
+      return Null{};
+    } else if constexpr(std::is_same_v<T,ExprDiv>){
+      Scalar l = eval_simple(g, *node.lhs, b, params);
+      Scalar r = eval_simple(g, *node.rhs, b, params);
+      if((std::holds_alternative<int64_t>(l) || std::holds_alternative<double>(l)) &&
+         (std::holds_alternative<int64_t>(r) || std::holds_alternative<double>(r))){
+        double lv = std::holds_alternative<double>(l)?std::get<double>(l):std::get<int64_t>(l);
+        double rv = std::holds_alternative<double>(r)?std::get<double>(r):std::get<int64_t>(r);
+        if(rv==0.0) return Null{};
+        return lv / rv;
+      }
+      return Null{};
     } else if constexpr(std::is_same_v<T,ExprLabelIs>){
       auto nid = get_node_id(b, node.var); if(!nid) return false; return node_has_label(g, *nid, node.label);
     } else if constexpr(std::is_same_v<T,ExprCmp>){
@@ -141,6 +194,8 @@ Scalar eval_simple(Graph& g, const Expr& e, const Binding& b, const Executor::Pa
       return is_truthy(eval_simple(g,*node.lhs,b,params)) && is_truthy(eval_simple(g,*node.rhs,b,params));
     } else if constexpr(std::is_same_v<T,ExprOr>){
       return is_truthy(eval_simple(g,*node.lhs,b,params)) || is_truthy(eval_simple(g,*node.rhs,b,params));
+    } else if constexpr(std::is_same_v<T,ExprMapLit>){
+      return Null{};
     } else {
       return Null{};
     }
@@ -153,40 +208,27 @@ bool eval_bool(Graph& g, const Expr& e, const Binding& b, const Executor::Params
   return is_truthy(s);
 }
 
+std::unordered_map<std::string, Scalar> eval_map_expr(Graph& g, const Expr& e, const Binding& b, const Executor::Params& params){
+  std::unordered_map<std::string, Scalar> out;
+  if(const auto* m = std::get_if<ExprMapLit>(&e)){
+    for(const auto& kv : m->items)
+      out[kv.first] = eval_simple(g, kv.second, b, params);
+  }
+  return out;
+}
+
 RowValue::Scalar project_expr(Graph& g, const Expr& e, const Binding& b, const Executor::Params& params){
-  return std::visit([&](auto&& node) -> RowValue::Scalar {
-    using T = std::decay_t<decltype(node)>;
-    if constexpr (std::is_same_v<T, ExprIdent>) {
-      auto nid = get_node_id(b, node.name);
-      if (!nid) return RowValue::Scalar{};
-      return *nid;
-    } else if constexpr (std::is_same_v<T, ExprProp>) {
-      auto nid = get_node_id(b, node.var);
-      if (!nid) return RowValue::Scalar{};
-      Scalar s = get_prop_scalar(g, *nid, node.key);
-      return std::visit([](auto&& v) -> RowValue::Scalar {
-        using U = std::decay_t<decltype(v)>;
-        if constexpr (std::is_same_v<U, Null>) return std::monostate{};
-        else return v;
-      }, s);
-    } else if constexpr (std::is_same_v<T, ExprLiteral>) {
-      return std::visit([](auto&& v) -> RowValue::Scalar {
-        using U = std::decay_t<decltype(v)>;
-        if constexpr (std::is_same_v<U, Null>) return std::monostate{};
-        else return v;
-      }, node.value);
-    } else if constexpr (std::is_same_v<T, ExprParam>) {
-      auto it = params.find(node.name);
-      if (it == params.end()) return RowValue::Scalar{};
-      return std::visit([](auto&& v) -> RowValue::Scalar {
-        using U = std::decay_t<decltype(v)>;
-        if constexpr (std::is_same_v<U, std::monostate>) return std::monostate{};
-        else return v;
-      }, it->second);
-    } else {
-      return RowValue::Scalar{};
-    }
-  }, e);
+  if (auto id = std::get_if<ExprIdent>(&e)) {
+    auto nid = get_node_id(b, id->name);
+    if (!nid) return RowValue::Scalar{};
+    return *nid;
+  }
+  Scalar s = eval_simple(g, e, b, params);
+  return std::visit([](auto&& v) -> RowValue::Scalar {
+    using U = std::decay_t<decltype(v)>;
+    if constexpr (std::is_same_v<U, Null>) return std::monostate{};
+    else return v;
+  }, s);
 }
 
 std::string default_column_name(const Expr& e){
@@ -253,6 +295,8 @@ QueryResult Executor::run(const Script& script, const Params& params){
             std::visit(overloaded{
               [&](const SetProp& sp){
                 auto nid = get_node_id(b, sp.var); if(!nid) return; Scalar val = eval_simple(g_, sp.value, b, params); updates[*nid][sp.key]=val; },
+              [&](const SetMerge& sm){
+                auto nid = get_node_id(b, sm.var); if(!nid) return; auto mp = eval_map_expr(g_, sm.map, b, params); for(auto& kv:mp) updates[*nid][kv.first]=kv.second; },
               [&](const SetAddLabel& sl){
                 auto nid = get_node_id(b, sl.var); if(!nid) return; Node* n = g_.get_node(*nid); if(!n) return; if(std::find(n->labels.begin(), n->labels.end(), sl.label)==n->labels.end()) n->labels.push_back(sl.label); }
             }, item);
