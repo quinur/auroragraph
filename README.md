@@ -5,14 +5,26 @@ supports labeled nodes and directed edges, each with arbitrary scalar properties
 The project aims to provide a compact foundation for experimenting with graph
 algorithms and query processing.
 
-## Building
+## Building (Windows / Visual Studio 2022)
 
-```bash
-./install.sh
-```
+AuroraGraph now ships with a native Visual Studio solution. Open
+`AuroraGraph.sln` to build the projects.
 
-This script configures and builds the project in `build/` and runs the unit tests.
-If Qt6 is not available, the GUI target is skipped.
+### Prerequisites
+
+* Windows 10/11 x64
+* Visual Studio 2022 with the **Desktop development with C++** workload
+* Qt 6 for MSVC x64 and the *Qt Visual Studio Tools* extension
+  (or set the `QTDIR` environment variable to your Qt installation root)
+
+### Steps
+
+1. Open the solution in Visual Studio.
+2. Choose **Debug** or **Release** and build.
+3. Executables are placed in `x64/<Config>/`. The GUI project runs `windeployqt`
+   to copy required Qt DLLs.
+
+The project is Windows-only and no longer uses CMake or bash scripts.
 
 ## JSONL Format
 
