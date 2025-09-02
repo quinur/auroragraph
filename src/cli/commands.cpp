@@ -28,8 +28,8 @@ static Value parse_value(const std::string& token) {
   return token;
 }
 
-CommandDispatcher::CommandDispatcher(aurora::Graph& g, CliConfig& cfg)
-    : g_(g), cfg_(cfg) {}
+CommandDispatcher::CommandDispatcher(aurora::Graph& g, CliConfig& cfg, aurora::agql::Executor* exec)
+    : g_(g), cfg_(cfg), exec_(exec) {}
 
 bool CommandDispatcher::handle(const std::string& line) {
   if (line.empty() || line[0] != ':') return false;
@@ -109,7 +109,15 @@ bool CommandDispatcher::handle(const std::string& line) {
       cfg_.params[name] = parse_value(value);
     }
   } else if (cmd == "indexes") {
-    print_info("no indexes");
+    if (exec_) {
+      auto idxs = exec_->list_indexes();
+      if (idxs.empty()) print_info("<no indexes>");
+      else {
+        for (auto& p : idxs) print_info(p.first + ":" + p.second);
+      }
+    } else {
+      print_info("<no indexes>");
+    }
   } else if (cmd == "quit" || cmd == "exit") {
     quit_ = true;
   } else if (cmd == "clear") {

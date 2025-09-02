@@ -198,6 +198,7 @@ struct Parser {
     if(match(TokenKind::Int)) return ExprLiteral{std::stoll(prev().lexeme)};
     if(match(TokenKind::Real)) return ExprLiteral{std::stod(prev().lexeme)};
     if(match(TokenKind::String)) return ExprLiteral{prev().lexeme};
+    if(match(TokenKind::Param)) return ExprParam{prev().lexeme};
     if(match(TokenKind::Ident)){
       std::string first = prev().lexeme;
       if(match(TokenKind::Dot)){
@@ -219,6 +220,7 @@ struct Parser {
       if constexpr(std::is_same_v<T,ExprIdent>){ out.insert(node.name); }
       else if constexpr(std::is_same_v<T,ExprProp>){ out.insert(node.var); }
       else if constexpr(std::is_same_v<T,ExprLabelIs>){ out.insert(node.var); }
+      else if constexpr(std::is_same_v<T,ExprParam>){ /* parameters introduce no vars */ }
       else if constexpr(std::is_same_v<T,ExprCmp>){ collect_vars(*node.lhs,out); collect_vars(*node.rhs,out); }
       else if constexpr(std::is_same_v<T,ExprNot>){ collect_vars(*node.e,out); }
       else if constexpr(std::is_same_v<T,ExprAnd>){ collect_vars(*node.lhs,out); collect_vars(*node.rhs,out); }

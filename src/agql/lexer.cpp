@@ -271,6 +271,17 @@ struct Lexer {
         }
         break;
       }
+      case '$': {
+        get();
+        if (!std::isalpha(peek()) && peek() != '_')
+          error("Invalid parameter name");
+        size_t start = pos;
+        while (std::isalnum(peek()) || peek() == '_')
+          get();
+        std::string name(input.substr(start, pos - start));
+        add(TokenKind::Param, name, l, c);
+        break;
+      }
       default:
         error(std::string("Unexpected character: ") + ch);
       }

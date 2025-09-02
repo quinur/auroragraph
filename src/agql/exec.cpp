@@ -118,7 +118,7 @@ bool is_truthy(const Scalar& s){
   return false;
 }
 
-Scalar eval_simple(Graph& g, const Expr& e, const Binding& b){
+Scalar eval_simple(Graph& g, const Expr& e, const Binding& b, const Executor::Params& params){
   return std::visit([&](auto&& node)->Scalar{
     using T = std::decay_t<decltype(node)>;
     if constexpr(std::is_same_v<T,ExprIdent>){
@@ -127,37 +127,62 @@ Scalar eval_simple(Graph& g, const Expr& e, const Binding& b){
       auto nid = get_node_id(b, node.var); if(!nid) return Null{}; return get_prop_scalar(g, *nid, node.key);
     } else if constexpr(std::is_same_v<T,ExprLiteral>){
       return node.value;
+    } else if constexpr(std::is_same_v<T,ExprParam>){
+      auto it = params.find(node.name);
+      if(it==params.end()) return Null{};
+      return from_value(it->second);
     } else if constexpr(std::is_same_v<T,ExprLabelIs>){
       auto nid = get_node_id(b, node.var); if(!nid) return false; return node_has_label(g, *nid, node.label);
     } else if constexpr(std::is_same_v<T,ExprCmp>){
-      Scalar l = eval_simple(g, *node.lhs, b); Scalar r = eval_simple(g, *node.rhs, b); return compare_scalar(l,node.op,r);
+      Scalar l = eval_simple(g, *node.lhs, b, params); Scalar r = eval_simple(g, *node.rhs, b, params); return compare_scalar(l,node.op,r);
     } else if constexpr(std::is_same_v<T,ExprNot>){
-      return !is_truthy(eval_simple(g,*node.e,b));
+      return !is_truthy(eval_simple(g,*node.e,b,params));
     } else if constexpr(std::is_same_v<T,ExprAnd>){
-      return is_truthy(eval_simple(g,*node.lhs,b)) && is_truthy(eval_simple(g,*node.rhs,b));
+      return is_truthy(eval_simple(g,*node.lhs,b,params)) && is_truthy(eval_simple(g,*node.rhs,b,params));
     } else if constexpr(std::is_same_v<T,ExprOr>){
-      return is_truthy(eval_simple(g,*node.lhs,b)) || is_truthy(eval_simple(g,*node.rhs,b));
+      return is_truthy(eval_simple(g,*node.lhs,b,params)) || is_truthy(eval_simple(g,*node.rhs,b,params));
     } else {
       return Null{};
     }
   }, e);
 }
 
-bool eval_bool(Graph& g, const Expr& e, const Binding& b){
-  Scalar s = eval_simple(g, e, b);
+bool eval_bool(Graph& g, const Expr& e, const Binding& b, const Executor::Params& params){
+  Scalar s = eval_simple(g, e, b, params);
   if(std::holds_alternative<bool>(s)) return std::get<bool>(s);
   return is_truthy(s);
 }
 
-RowValue::Scalar project_expr(Graph& g, const Expr& e, const Binding& b){
-  return std::visit([&](auto&& node)->RowValue::Scalar{
-    using T=std::decay_t<decltype(node)>;
-      if constexpr(std::is_same_v<T,ExprIdent>){
-        auto nid = get_node_id(b, node.name); if(!nid) return RowValue::Scalar{}; return *nid;
-      } else if constexpr(std::is_same_v<T,ExprProp>){
-        auto nid = get_node_id(b, node.var); if(!nid) return RowValue::Scalar{}; Scalar s = get_prop_scalar(g,*nid,node.key); return std::visit([](auto&& v)->RowValue::Scalar{ using U=std::decay_t<decltype(v)>; if constexpr(std::is_same_v<U,Null>) return std::monostate{}; else return v; }, s);
-    } else if constexpr(std::is_same_v<T,ExprLiteral>){
-      return std::visit([](auto&& v)->RowValue::Scalar{ using U=std::decay_t<decltype(v)>; if constexpr(std::is_same_v<U,Null>) return std::monostate{}; else return v; }, node.value);
+RowValue::Scalar project_expr(Graph& g, const Expr& e, const Binding& b, const Executor::Params& params){
+  return std::visit([&](auto&& node) -> RowValue::Scalar {
+    using T = std::decay_t<decltype(node)>;
+    if constexpr (std::is_same_v<T, ExprIdent>) {
+      auto nid = get_node_id(b, node.name);
+      if (!nid) return RowValue::Scalar{};
+      return *nid;
+    } else if constexpr (std::is_same_v<T, ExprProp>) {
+      auto nid = get_node_id(b, node.var);
+      if (!nid) return RowValue::Scalar{};
+      Scalar s = get_prop_scalar(g, *nid, node.key);
+      return std::visit([](auto&& v) -> RowValue::Scalar {
+        using U = std::decay_t<decltype(v)>;
+        if constexpr (std::is_same_v<U, Null>) return std::monostate{};
+        else return v;
+      }, s);
+    } else if constexpr (std::is_same_v<T, ExprLiteral>) {
+      return std::visit([](auto&& v) -> RowValue::Scalar {
+        using U = std::decay_t<decltype(v)>;
+        if constexpr (std::is_same_v<U, Null>) return std::monostate{};
+        else return v;
+      }, node.value);
+    } else if constexpr (std::is_same_v<T, ExprParam>) {
+      auto it = params.find(node.name);
+      if (it == params.end()) return RowValue::Scalar{};
+      return std::visit([](auto&& v) -> RowValue::Scalar {
+        using U = std::decay_t<decltype(v)>;
+        if constexpr (std::is_same_v<U, std::monostate>) return std::monostate{};
+        else return v;
+      }, it->second);
     } else {
       return RowValue::Scalar{};
     }
@@ -178,6 +203,10 @@ std::string default_column_name(const Expr& e){
 Executor::Executor(Graph& g) : g_(g) {}
 
 QueryResult Executor::run(const Script& script){
+  return run(script, Params{});
+}
+
+QueryResult Executor::run(const Script& script, const Params& params){
   QueryResult res;
   std::vector<Binding> current(1); // start with single empty binding
   for(const Stmt& st : script.stmts){
@@ -211,10 +240,10 @@ QueryResult Executor::run(const Script& script){
         last_match_used_index_ = false;
         auto bindings = match_pattern(s.pattern);
         std::vector<Binding> filtered;
-        for(auto& b : bindings){ if(!s.where || eval_bool(g_, *s.where, b)) filtered.push_back(b); }
+        for(auto& b : bindings){ if(!s.where || eval_bool(g_, *s.where, b, params)) filtered.push_back(b); }
         if(!s.ret.empty()){
           for(auto& b : filtered){
-            RowValue row; for(const auto& item : s.ret){ RowValue::Scalar val = project_expr(g_, item.expr, b); std::string name = item.alias?*item.alias:default_column_name(item.expr); row.columns.emplace_back(std::move(name), std::move(val)); } res.rows.push_back(std::move(row)); }
+            RowValue row; for(const auto& item : s.ret){ RowValue::Scalar val = project_expr(g_, item.expr, b, params); std::string name = item.alias?*item.alias:default_column_name(item.expr); row.columns.emplace_back(std::move(name), std::move(val)); } res.rows.push_back(std::move(row)); }
         }
         current = std::move(filtered);
       } else if constexpr(std::is_same_v<T,StmtSet>){
@@ -223,7 +252,7 @@ QueryResult Executor::run(const Script& script){
           for(const auto& item : s.items){
             std::visit(overloaded{
               [&](const SetProp& sp){
-                auto nid = get_node_id(b, sp.var); if(!nid) return; Scalar val = eval_simple(g_, sp.value, b); updates[*nid][sp.key]=val; },
+                auto nid = get_node_id(b, sp.var); if(!nid) return; Scalar val = eval_simple(g_, sp.value, b, params); updates[*nid][sp.key]=val; },
               [&](const SetAddLabel& sl){
                 auto nid = get_node_id(b, sl.var); if(!nid) return; Node* n = g_.get_node(*nid); if(!n) return; if(std::find(n->labels.begin(), n->labels.end(), sl.label)==n->labels.end()) n->labels.push_back(sl.label); }
             }, item);
@@ -271,6 +300,12 @@ void Executor::register_index(const std::string& label, const std::string& key){
   IndexKey k{label, key};
   indexes_.erase(k);
   indexes_.emplace(k, Index(g_, label, key));
+}
+
+std::vector<std::pair<std::string, std::string>> Executor::list_indexes() const {
+  std::vector<std::pair<std::string, std::string>> out;
+  for (const auto& [k, idx] : indexes_) out.emplace_back(k.label, k.key);
+  return out;
 }
 
 std::vector<NodeId> Executor::match_node_pattern(const NodePattern& np){

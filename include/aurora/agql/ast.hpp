@@ -19,6 +19,7 @@ struct ExprIdent { std::string name; };
 struct ExprProp  { std::string var; std::string key; };
 struct ExprLabelIs { std::string var; std::string label; };
 struct ExprLiteral { Scalar value; };
+struct ExprParam { std::string name; };
 
 enum class CmpOp { Eq, Ne, Lt, Le, Gt, Ge };
 struct ExprCmp { ExprPtr lhs; CmpOp op; ExprPtr rhs; };
@@ -27,9 +28,9 @@ struct ExprAnd { ExprPtr lhs, rhs; };
 struct ExprOr  { ExprPtr lhs, rhs; };
 
 struct Expr : std::variant<ExprIdent, ExprProp, ExprLabelIs, ExprLiteral,
-                           ExprCmp, ExprNot, ExprAnd, ExprOr> {
+                           ExprParam, ExprCmp, ExprNot, ExprAnd, ExprOr> {
   using std::variant<ExprIdent, ExprProp, ExprLabelIs, ExprLiteral,
-                     ExprCmp, ExprNot, ExprAnd, ExprOr>::variant;
+                     ExprParam, ExprCmp, ExprNot, ExprAnd, ExprOr>::variant;
 };
 
 // Node/edge patterns

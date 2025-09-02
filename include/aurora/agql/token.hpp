@@ -16,7 +16,8 @@ enum class TokenKind {
   Equal, NotEqual, Less, LessEq, Greater, GreaterEq,
   // literals
   String, Int, Real, True, False, Null,
-  Ident
+  Ident,
+  Param
 };
 
 struct Token {
