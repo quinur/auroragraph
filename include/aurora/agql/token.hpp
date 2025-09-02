@@ -9,14 +9,18 @@ enum class TokenKind {
   // keywords
   Create, Match, Where, Return, And, Or, Not, As,
   Set, Delete, Detach, Remove,
+  Distinct, Order, By, Limit, Skip, Optional, With, Unwind,
+  Exists, Is, In, Starts, Ends, Contains,
+  Count, Sum, Avg, Min, Max,
   // symbols
   LParen, RParen, LBrace, RBrace, LBracket, RBracket,
   Colon, Comma, Dot, Semicolon,
-  Arrow, Minus,
+  Arrow, Plus, Minus, Star, Slash, PlusEqual,
   Equal, NotEqual, Less, LessEq, Greater, GreaterEq,
   // literals
   String, Int, Real, True, False, Null,
-  Ident
+  Ident,
+  Param
 };
 
 struct Token {

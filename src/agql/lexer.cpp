@@ -165,6 +165,44 @@ struct Lexer {
       add(TokenKind::Detach, lexeme, l, c);
     else if (upper == "REMOVE")
       add(TokenKind::Remove, lexeme, l, c);
+    else if (upper == "DISTINCT")
+      add(TokenKind::Distinct, lexeme, l, c);
+    else if (upper == "ORDER")
+      add(TokenKind::Order, lexeme, l, c);
+    else if (upper == "BY")
+      add(TokenKind::By, lexeme, l, c);
+    else if (upper == "LIMIT")
+      add(TokenKind::Limit, lexeme, l, c);
+    else if (upper == "SKIP")
+      add(TokenKind::Skip, lexeme, l, c);
+    else if (upper == "OPTIONAL")
+      add(TokenKind::Optional, lexeme, l, c);
+    else if (upper == "WITH")
+      add(TokenKind::With, lexeme, l, c);
+    else if (upper == "UNWIND")
+      add(TokenKind::Unwind, lexeme, l, c);
+    else if (upper == "EXISTS")
+      add(TokenKind::Exists, lexeme, l, c);
+    else if (upper == "IS")
+      add(TokenKind::Is, lexeme, l, c);
+    else if (upper == "IN")
+      add(TokenKind::In, lexeme, l, c);
+    else if (upper == "STARTS")
+      add(TokenKind::Starts, lexeme, l, c);
+    else if (upper == "ENDS")
+      add(TokenKind::Ends, lexeme, l, c);
+    else if (upper == "CONTAINS")
+      add(TokenKind::Contains, lexeme, l, c);
+    else if (upper == "COUNT")
+      add(TokenKind::Count, lexeme, l, c);
+    else if (upper == "SUM")
+      add(TokenKind::Sum, lexeme, l, c);
+    else if (upper == "AVG")
+      add(TokenKind::Avg, lexeme, l, c);
+    else if (upper == "MIN")
+      add(TokenKind::Min, lexeme, l, c);
+    else if (upper == "MAX")
+      add(TokenKind::Max, lexeme, l, c);
     else
       add(TokenKind::Ident, lexeme, l, c);
   }
@@ -229,6 +267,16 @@ struct Lexer {
       case '"':
         lex_string();
         break;
+      case '+': {
+        get();
+        if (peek() == '=') {
+          get();
+          add(TokenKind::PlusEqual, "+=", l, c);
+        } else {
+          add(TokenKind::Plus, "+", l, c);
+        }
+        break;
+      }
       case '-': {
         get();
         if (peek() == '>') {
@@ -238,6 +286,14 @@ struct Lexer {
           add(TokenKind::Minus, "-", l, c);
         break;
       }
+      case '*':
+        get();
+        add(TokenKind::Star, "*", l, c);
+        break;
+      case '/':
+        get();
+        add(TokenKind::Slash, "/", l, c);
+        break;
       case '=':
         get();
         add(TokenKind::Equal, "=", l, c);
@@ -269,6 +325,17 @@ struct Lexer {
         } else {
           add(TokenKind::Greater, ">", l, c);
         }
+        break;
+      }
+      case '$': {
+        get();
+        if (!std::isalpha(peek()) && peek() != '_')
+          error("Invalid parameter name");
+        size_t start = pos;
+        while (std::isalnum(peek()) || peek() == '_')
+          get();
+        std::string name(input.substr(start, pos - start));
+        add(TokenKind::Param, name, l, c);
         break;
       }
       default:

@@ -163,6 +163,9 @@ struct Parser {
       expect(TokenKind::Equal, "=");
       Expr val = parse_expr();
       return SetProp{var, key, std::move(val)};
+    } else if(match(TokenKind::PlusEqual)) {
+      Expr map = parse_expr();
+      return SetMerge{var, std::move(map)};
     } else if(match(TokenKind::Colon)){
       std::string label = expect(TokenKind::Ident, "label").lexeme;
       return SetAddLabel{var, label};
@@ -187,17 +190,60 @@ struct Parser {
   Expr parse_or(){ Expr left = parse_and(); while(match(TokenKind::Or)){ Expr rhs = parse_and(); auto l=std::make_unique<Expr>(std::move(left)); auto r=std::make_unique<Expr>(std::move(rhs)); left = ExprOr{std::move(l), std::move(r)}; } return left; }
   Expr parse_and(){ Expr left = parse_not(); while(match(TokenKind::And)){ Expr rhs = parse_not(); auto l=std::make_unique<Expr>(std::move(left)); auto r=std::make_unique<Expr>(std::move(rhs)); left = ExprAnd{std::move(l), std::move(r)}; } return left; }
   Expr parse_not(){ if(match(TokenKind::Not)){ Expr e = parse_not(); auto ptr=std::make_unique<Expr>(std::move(e)); return ExprNot{std::move(ptr)}; } return parse_cmp(); }
-  Expr parse_cmp(){ Expr left = parse_primary(); if(match(TokenKind::Equal)||match(TokenKind::NotEqual)||match(TokenKind::Less)||match(TokenKind::LessEq)||match(TokenKind::Greater)||match(TokenKind::GreaterEq)){ Token opTok = prev(); CmpOp op; switch(opTok.kind){ case TokenKind::Equal: op=CmpOp::Eq; break; case TokenKind::NotEqual: op=CmpOp::Ne; break; case TokenKind::Less: op=CmpOp::Lt; break; case TokenKind::LessEq: op=CmpOp::Le; break; case TokenKind::Greater: op=CmpOp::Gt; break; case TokenKind::GreaterEq: op=CmpOp::Ge; break; default: op=CmpOp::Eq; }
-    Expr right = parse_primary(); auto l=std::make_unique<Expr>(std::move(left)); auto r=std::make_unique<Expr>(std::move(right)); return ExprCmp{std::move(l), op, std::move(r)}; } return left; }
+  Expr parse_cmp(){ Expr left = parse_add(); if(match(TokenKind::Equal)||match(TokenKind::NotEqual)||match(TokenKind::Less)||match(TokenKind::LessEq)||match(TokenKind::Greater)||match(TokenKind::GreaterEq)){ Token opTok = prev(); CmpOp op; switch(opTok.kind){ case TokenKind::Equal: op=CmpOp::Eq; break; case TokenKind::NotEqual: op=CmpOp::Ne; break; case TokenKind::Less: op=CmpOp::Lt; break; case TokenKind::LessEq: op=CmpOp::Le; break; case TokenKind::Greater: op=CmpOp::Gt; break; case TokenKind::GreaterEq: op=CmpOp::Ge; break; default: op=CmpOp::Eq; }
+    Expr right = parse_add(); auto l=std::make_unique<Expr>(std::move(left)); auto r=std::make_unique<Expr>(std::move(right)); return ExprCmp{std::move(l), op, std::move(r)}; } return left; }
+
+  Expr parse_add(){
+    Expr left = parse_mul();
+    while(match(TokenKind::Plus) || match(TokenKind::Minus)){
+      Token opTok = prev();
+      Expr right = parse_mul();
+      auto l = std::make_unique<Expr>(std::move(left));
+      auto r = std::make_unique<Expr>(std::move(right));
+      if(opTok.kind==TokenKind::Plus)
+        left = ExprAdd{std::move(l), std::move(r)};
+      else
+        left = ExprSub{std::move(l), std::move(r)};
+    }
+    return left;
+  }
+
+  Expr parse_mul(){
+    Expr left = parse_primary();
+    while(match(TokenKind::Star) || match(TokenKind::Slash)){
+      Token opTok = prev();
+      Expr right = parse_primary();
+      auto l = std::make_unique<Expr>(std::move(left));
+      auto r = std::make_unique<Expr>(std::move(right));
+      if(opTok.kind==TokenKind::Star)
+        left = ExprMul{std::move(l), std::move(r)};
+      else
+        left = ExprDiv{std::move(l), std::move(r)};
+    }
+    return left;
+  }
 
   Expr parse_primary(){
     if(match(TokenKind::LParen)){ Expr e = parse_expr(); expect(TokenKind::RParen, ")"); return e; }
+    if(match(TokenKind::LBrace)){
+      ExprMapLit m; if(!check(TokenKind::RBrace)){
+        do {
+          std::string key = expect(TokenKind::Ident, "map key").lexeme;
+          expect(TokenKind::Colon, ":");
+          Expr val = parse_expr();
+          m.items.emplace_back(std::move(key), std::move(val));
+        } while(match(TokenKind::Comma));
+      }
+      expect(TokenKind::RBrace, "}");
+      return m;
+    }
     if(match(TokenKind::Null)) return ExprLiteral{Null{}};
     if(match(TokenKind::True)) return ExprLiteral{true};
     if(match(TokenKind::False)) return ExprLiteral{false};
     if(match(TokenKind::Int)) return ExprLiteral{std::stoll(prev().lexeme)};
     if(match(TokenKind::Real)) return ExprLiteral{std::stod(prev().lexeme)};
     if(match(TokenKind::String)) return ExprLiteral{prev().lexeme};
+    if(match(TokenKind::Param)) return ExprParam{prev().lexeme};
     if(match(TokenKind::Ident)){
       std::string first = prev().lexeme;
       if(match(TokenKind::Dot)){
@@ -219,10 +265,17 @@ struct Parser {
       if constexpr(std::is_same_v<T,ExprIdent>){ out.insert(node.name); }
       else if constexpr(std::is_same_v<T,ExprProp>){ out.insert(node.var); }
       else if constexpr(std::is_same_v<T,ExprLabelIs>){ out.insert(node.var); }
+      else if constexpr(std::is_same_v<T,ExprParam>){ /* parameters introduce no vars */ }
       else if constexpr(std::is_same_v<T,ExprCmp>){ collect_vars(*node.lhs,out); collect_vars(*node.rhs,out); }
       else if constexpr(std::is_same_v<T,ExprNot>){ collect_vars(*node.e,out); }
       else if constexpr(std::is_same_v<T,ExprAnd>){ collect_vars(*node.lhs,out); collect_vars(*node.rhs,out); }
       else if constexpr(std::is_same_v<T,ExprOr>){ collect_vars(*node.lhs,out); collect_vars(*node.rhs,out); }
+      else if constexpr(std::is_same_v<T,ExprAdd> || std::is_same_v<T,ExprSub> ||
+                        std::is_same_v<T,ExprMul> || std::is_same_v<T,ExprDiv>){
+        collect_vars(*node.lhs,out); collect_vars(*node.rhs,out);
+      } else if constexpr(std::is_same_v<T,ExprMapLit>){
+        for(const auto& kv : node.items) collect_vars(kv.second, out);
+      }
     }, e);
   }
 };

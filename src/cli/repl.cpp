@@ -50,8 +50,9 @@ static bool has_top_level_semicolon(const std::string& s) {
 }
 
 int repl(aurora::Graph& g, CliConfig cfg, std::function<void()> on_start) {
-  CommandDispatcher dispatcher(g, cfg);
   agql::Executor executor(g);
+  CommandDispatcher dispatcher(g, cfg, &executor);
+  executor.register_index("User", "id");
   if (on_start) on_start();
   std::string buffer;
   std::string line;
@@ -77,7 +78,7 @@ int repl(aurora::Graph& g, CliConfig cfg, std::function<void()> on_start) {
     try {
       auto start = steady_clock::now();
       auto script = agql::parse_script(script_text);
-      auto res = executor.run(script);
+      auto res = executor.run(script, cfg.params);
       if (!res.rows.empty()) {
         Table t;
         t.headers.reserve(res.rows.front().columns.size());

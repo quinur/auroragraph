@@ -9,6 +9,7 @@
 #include "aurora/agql/ast.hpp"
 #include "aurora/core/graph.hpp"
 #include "aurora/core/index.hpp"
+#include "aurora/common/value.hpp"
 
 namespace aurora::agql {
 
@@ -33,8 +34,11 @@ public:
   explicit Executor(Graph& g);
 
   QueryResult run(const Script& script);
+  using Params = std::unordered_map<std::string, Value>;
+  QueryResult run(const Script& script, const Params& params);
 
   void register_index(const std::string& label, const std::string& key);
+  std::vector<std::pair<std::string, std::string>> list_indexes() const;
   bool last_match_used_index() const { return last_match_used_index_; }
 
 private:

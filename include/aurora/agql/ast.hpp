@@ -19,6 +19,14 @@ struct ExprIdent { std::string name; };
 struct ExprProp  { std::string var; std::string key; };
 struct ExprLabelIs { std::string var; std::string label; };
 struct ExprLiteral { Scalar value; };
+struct ExprParam { std::string name; };
+
+struct ExprAdd { ExprPtr lhs; ExprPtr rhs; };
+struct ExprSub { ExprPtr lhs; ExprPtr rhs; };
+struct ExprMul { ExprPtr lhs; ExprPtr rhs; };
+struct ExprDiv { ExprPtr lhs; ExprPtr rhs; };
+
+struct ExprMapLit { std::vector<std::pair<std::string, Expr>> items; };
 
 enum class CmpOp { Eq, Ne, Lt, Le, Gt, Ge };
 struct ExprCmp { ExprPtr lhs; CmpOp op; ExprPtr rhs; };
@@ -27,9 +35,11 @@ struct ExprAnd { ExprPtr lhs, rhs; };
 struct ExprOr  { ExprPtr lhs, rhs; };
 
 struct Expr : std::variant<ExprIdent, ExprProp, ExprLabelIs, ExprLiteral,
-                           ExprCmp, ExprNot, ExprAnd, ExprOr> {
+                           ExprParam, ExprAdd, ExprSub, ExprMul, ExprDiv,
+                           ExprCmp, ExprNot, ExprAnd, ExprOr, ExprMapLit> {
   using std::variant<ExprIdent, ExprProp, ExprLabelIs, ExprLiteral,
-                     ExprCmp, ExprNot, ExprAnd, ExprOr>::variant;
+                     ExprParam, ExprAdd, ExprSub, ExprMul, ExprDiv,
+                     ExprCmp, ExprNot, ExprAnd, ExprOr, ExprMapLit>::variant;
 };
 
 // Node/edge patterns
@@ -59,8 +69,9 @@ struct StmtCreateNode { NodePattern node; };
 struct StmtCreateEdge { NodePattern left; RelPattern rel; NodePattern right; };
 
 struct SetProp { std::string var; std::string key; Expr value; };
+struct SetMerge { std::string var; Expr map; };
 struct SetAddLabel { std::string var; std::string label; };
-using SetItem = std::variant<SetProp, SetAddLabel>;
+using SetItem = std::variant<SetProp, SetMerge, SetAddLabel>;
 struct StmtSet { std::vector<SetItem> items; };
 
 struct RemoveProp { std::string var; std::string key; };
