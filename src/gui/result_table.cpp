@@ -22,11 +22,11 @@ void ResultTable::setResult(const aurora::agql::QueryResult& res) {
       const auto& val = row.columns[c].second;
       QString text;
       if (std::holds_alternative<std::monostate>(val)) text = "null";
-      else if (auto p = std::get_if<int64_t>(&val)) text = QString::number(*p);
-      else if (auto p = std::get_if<double>(&val)) text = QString::number(*p);
-      else if (auto p = std::get_if<bool>(&val)) text = *p ? "true" : "false";
-      else if (auto p = std::get_if<std::string>(&val)) text = QString::fromStdString(*p);
-      else if (auto p = std::get_if<aurora::NodeId>(&val)) text = QString("#%1").arg(*p);
+      else if (auto pInt = std::get_if<int64_t>(&val)) text = QString::number(*pInt);
+      else if (auto pDouble = std::get_if<double>(&val)) text = QString::number(*pDouble);
+      else if (auto pBool = std::get_if<bool>(&val)) text = *pBool ? "true" : "false";
+      else if (auto pString = std::get_if<std::string>(&val)) text = QString::fromStdString(*pString);
+      else if (auto pNodeId = std::get_if<aurora::NodeId>(&val)) text = QString("#%1").arg(*pNodeId);
       m->setItem(r, c, new QStandardItem(text));
     }
     ++r;
