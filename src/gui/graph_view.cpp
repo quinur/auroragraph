@@ -6,8 +6,6 @@
 #include <cmath>
 #include <cstddef>
 
-using namespace aurora;
-
 namespace aurora::gui {
 
 GraphView::GraphView(QWidget* parent) : QGraphicsView(parent) {

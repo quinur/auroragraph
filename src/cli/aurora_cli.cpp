@@ -10,11 +10,9 @@
 #include "aurora/storage/snapshot.hpp"
 #include "aurora/core/storage.hpp"
 
-using namespace aurora;
-
 int main(int argc, char** argv) {
-  cli::color::enable_colors();
-  cli::print_banner();
+  aurora::cli::color::enable_colors();
+  aurora::cli::print_banner();
 
   std::string nodes_path, edges_path, snapshot_path, wal_path;
   for (int i = 1; i < argc; ++i) {
@@ -29,21 +27,21 @@ int main(int argc, char** argv) {
     }
   }
 
-  Graph g;
+  aurora::Graph g;
   if (!snapshot_path.empty()) {
     if (!wal_path.empty()) {
-      storage::Recovery::restore(g, snapshot_path, wal_path);
+      aurora::storage::Recovery::restore(g, snapshot_path, wal_path);
     } else {
-      storage::Snapshot::read(g, snapshot_path);
+      aurora::storage::Snapshot::read(g, snapshot_path);
     }
-    cli::print_info("Recovered graph");
+    aurora::cli::print_info("Recovered graph");
   } else if (!nodes_path.empty() && !edges_path.empty()) {
-    auto stats = Storage::import_jsonl(g, nodes_path, edges_path);
-    cli::print_info("Imported nodes: " + std::to_string(stats.nodes_read) +
-                    ", edges: " + std::to_string(stats.edges_read));
+    auto stats = aurora::Storage::import_jsonl(g, nodes_path, edges_path);
+    aurora::cli::print_info("Imported nodes: " + std::to_string(stats.nodes_read) +
+                            ", edges: " + std::to_string(stats.edges_read));
   }
 
-  cli::CliConfig cfg;
+  aurora::cli::CliConfig cfg;
 #ifdef _WIN32
   const char* local = std::getenv("LOCALAPPDATA");
   if (local) {
@@ -59,6 +57,6 @@ int main(int argc, char** argv) {
   else cfg.history_path = ".aurora_history";
 #endif
 
-  return cli::repl(g, cfg);
+  return aurora::cli::repl(g, cfg);
 }
 

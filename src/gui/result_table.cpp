@@ -2,8 +2,6 @@
 #include <QStandardItemModel>
 #include "aurora/agql/exec.hpp"
 
-using namespace aurora;
-
 namespace aurora::gui {
 ResultTable::ResultTable(QWidget* parent) : QTableView(parent) {
   setModel(new QStandardItemModel(this));
@@ -28,7 +26,7 @@ void ResultTable::setResult(const aurora::agql::QueryResult& res) {
       else if (auto p = std::get_if<double>(&val)) text = QString::number(*p);
       else if (auto p = std::get_if<bool>(&val)) text = *p ? "true" : "false";
       else if (auto p = std::get_if<std::string>(&val)) text = QString::fromStdString(*p);
-      else if (auto p = std::get_if<NodeId>(&val)) text = QString("#%1").arg(*p);
+      else if (auto p = std::get_if<aurora::NodeId>(&val)) text = QString("#%1").arg(*p);
       m->setItem(r, c, new QStandardItem(text));
     }
     ++r;

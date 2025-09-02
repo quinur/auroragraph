@@ -6,15 +6,12 @@
 #include "aurora/agql/parser.hpp"
 #include "aurora/agql/exec.hpp"
 
-using namespace aurora;
-using namespace aurora::agql;
-
 int main() {
-  Graph g;
+  aurora::Graph g;
   const size_t N = 10000;
   const size_t K = 5;
   for (size_t i = 0; i < N; ++i) {
-    Properties p; p["id"] = Int(i);
+    aurora::Properties p; p["id"] = aurora::Int(i);
     g.add_node({"User"}, p);
   }
   std::mt19937 rng(123);
@@ -25,8 +22,8 @@ int main() {
     }
   }
 
-  Executor ex(g);
-  auto script = parse_script("MATCH (u:User {id:42}) RETURN u;");
+  aurora::agql::Executor ex(g);
+  auto script = aurora::agql::parse_script("MATCH (u:User {id:42}) RETURN u;");
 
   auto start = std::chrono::steady_clock::now();
   ex.run(script);
