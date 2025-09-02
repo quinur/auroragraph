@@ -5,10 +5,11 @@ This GUI provides a minimal interface for viewing and querying graphs.
 ## Building
 
 Use Visual Studio 2022 to build the **AuroraGraphGUI** project from
-`AuroraGraph.sln`. Make sure a Qt 6 MSVC kit is configured via the Qt Visual
-Studio Tools extension. The executable is placed in
-`x64/<Config>/AuroraGraphGUI.exe`, and a post‑build step runs `windeployqt` to
-copy the required Qt DLLs.
+`AuroraGraph.sln`. If you have the Qt Visual Studio Tools extension installed,
+select a Qt 6 MSVC kit in the project settings. Otherwise, set the `QTDIR`
+environment variable to the root of your Qt installation. The executable is
+placed in `x64/<Config>/AuroraGraphGUI.exe`, and a post‑build step runs
+`windeployqt` to copy the required Qt DLLs.
 
 ## Usage
 

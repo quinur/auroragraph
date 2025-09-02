@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FC4EB9ED-F636-4E83-8F36-3D0D172A7586}</ProjectGuid>
-    <Keyword>QtVS_vcprojx</Keyword>
+    <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -29,9 +29,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(QtMsBuild)\Qt.props" Condition="Exists('$(QtMsBuild)\Qt.props')" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <QtDir Condition="'$(QtDir)'==''">$(QTDIR)</QtDir>
