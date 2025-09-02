@@ -50,12 +50,12 @@
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(QtDir)\lib;$(SolutionDir)x64\$(Configuration)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Qt6Widgets$(QtSuffix).lib;Qt6Gui$(QtSuffix).lib;Qt6Core$(QtSuffix).lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>"$(QtDir)\bin\windeployqt.exe" --$(Configuration:Debug=debug;Release=release) --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
+      <Command>"$(QtDir)\bin\windeployqt.exe" --debug --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -69,12 +69,12 @@
       <AdditionalIncludeDirectories>$(QtDir)\include;$(QtDir)\include\QtCore;$(QtDir)\include\QtGui;$(QtDir)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(QtDir)\lib;$(SolutionDir)x64\$(Configuration)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>Qt6Widgets$(QtSuffix).lib;Qt6Gui$(QtSuffix).lib;Qt6Core$(QtSuffix).lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>"$(QtDir)\bin\windeployqt.exe" --$(Configuration:Debug=debug;Release=release) --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
+      <Command>"$(QtDir)\bin\windeployqt.exe" --release --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -100,6 +100,9 @@
       <Outputs>$(IntDir)qrc_aurora.cpp</Outputs>
     </CustomBuild>
     <ClCompile Include="$(IntDir)qrc_aurora.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\gui\main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
