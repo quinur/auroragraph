@@ -49,13 +49,13 @@ int main(int argc, char** argv) {
   if (local) {
     auto dir = std::filesystem::path(local) / "AuroraGraph";
     std::filesystem::create_directories(dir);
-    cfg.history_path = dir / "history.txt";
+    cfg.history_path = (dir / "history.txt").string();
   } else {
     cfg.history_path = "history.txt";
   }
 #else
   const char* home = std::getenv("HOME");
-  if (home) cfg.history_path = std::filesystem::path(home) / ".aurora_history";
+  if (home) cfg.history_path = (std::filesystem::path(home) / ".aurora_history").string();
   else cfg.history_path = ".aurora_history";
 #endif
 

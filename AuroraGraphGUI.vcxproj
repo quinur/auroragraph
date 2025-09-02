@@ -34,6 +34,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
+    <QtDir Condition="'$(QtDir)'==''">$(QTDIR)</QtDir>
+    <QtSuffix Condition="'$(Configuration)'=='Debug'">d</QtSuffix>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>AuroraGraphGUI</TargetName>
@@ -46,12 +48,12 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtDir)\include;$(QtDir)\include\QtCore;$(QtDir)\include\QtGui;$(QtDir)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(QtDir)\lib;$(SolutionDir)x64\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Qt6Widgets.lib;Qt6Gui.lib;Qt6Core.lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Qt6Widgets$(QtSuffix).lib;Qt6Gui$(QtSuffix).lib;Qt6Core$(QtSuffix).lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>"$(QtDir)\bin\windeployqt.exe" --$(Configuration:Debug=debug;Release=release) --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
@@ -65,12 +67,12 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtDir)\include;$(QtDir)\include\QtCore;$(QtDir)\include\QtGui;$(QtDir)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)gui\include;$(SolutionDir)third_party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(QtDir)\lib;$(SolutionDir)x64\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Qt6Widgets.lib;Qt6Gui.lib;Qt6Core.lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Qt6Widgets$(QtSuffix).lib;Qt6Gui$(QtSuffix).lib;Qt6Core$(QtSuffix).lib;AuroraCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>"$(QtDir)\bin\windeployqt.exe" --$(Configuration:Debug=debug;Release=release) --compiler-runtime --no-quick-import --no-translations "$(TargetPath)"</Command>
@@ -93,10 +95,13 @@
     <ClCompile Include="src\gui\status_bar.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="gui\resources\aurora.qrc" />
+    <CustomBuild Include="gui\resources\aurora.qrc">
+      <Message>rcc %(Identity)</Message>
+      <Command>"$(QtDir)\bin\rcc.exe" -name aurora -o "$(IntDir)qrc_aurora.cpp" "%(FullPath)"</Command>
+      <Outputs>$(IntDir)qrc_aurora.cpp</Outputs>
+    </CustomBuild>
+    <ClCompile Include="$(IntDir)qrc_aurora.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(QtMsBuild)\Qt.targets" Condition="Exists('$(QtMsBuild)\Qt.targets')" />
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

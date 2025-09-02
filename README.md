@@ -15,6 +15,7 @@ AuroraGraph now ships with a native Visual Studio solution. Open
 * Windows 10/11 x64
 * Visual Studio 2022 with the **Desktop development with C++** workload
 * Qt 6 for MSVC x64 and the *Qt Visual Studio Tools* extension
+  (or set the `QTDIR` environment variable to your Qt installation root)
 
 ### Steps
 
