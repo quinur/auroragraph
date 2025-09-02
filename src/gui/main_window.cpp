@@ -21,14 +21,12 @@
 #include "aurora/gui/job_runner.hpp"
 #include "aurora/agql/parser.hpp"
 
-using namespace aurora;
-
 namespace aurora::gui {
 
 MainWindow::MainWindow() {
   setupUi();
   connectSignals();
-  exec_ = std::make_unique<agql::Executor>(graph_);
+  exec_ = std::make_unique<aurora::agql::Executor>(graph_);
   jobRunner_ = new JobRunner(this);
   applyTheme(true);
   refreshStats();
@@ -126,7 +124,7 @@ void MainWindow::openJsonl() {
   if (nodes.isEmpty()) return;
   QString edges = dialogs::openFile(this, tr("Edges (*.jsonl)"));
   if (edges.isEmpty()) return;
-  Storage::import_jsonl(graph_, nodes.toStdString(), edges.toStdString());
+  aurora::Storage::import_jsonl(graph_, nodes.toStdString(), edges.toStdString());
   graphView_->rebuildScene();
   refreshStats();
 }
@@ -136,14 +134,14 @@ void MainWindow::saveJsonl() {
   if (nodes.isEmpty()) return;
   QString edges = dialogs::saveFile(this, tr("Edges (*.jsonl)"));
   if (edges.isEmpty()) return;
-  Storage::export_jsonl(graph_, nodes.toStdString(), edges.toStdString());
+  aurora::Storage::export_jsonl(graph_, nodes.toStdString(), edges.toStdString());
 }
 
 void MainWindow::runQuery() {
   QString text = queryEditor_->textCursor().selectedText();
   if (text.isEmpty()) text = queryEditor_->toPlainText();
   try {
-    auto script = agql::parse_script(text.toStdString());
+    auto script = aurora::agql::parse_script(text.toStdString());
     auto res = exec_->run(script);
     resultTable_->setResult(res);
     graphView_->rebuildScene();
