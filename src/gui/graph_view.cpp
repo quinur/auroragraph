@@ -4,6 +4,7 @@
 
 #include <QWheelEvent>
 #include <cmath>
+#include <cstddef>
 
 using namespace aurora;
 
@@ -47,7 +48,7 @@ void GraphView::rebuildScene() {
 }
 
 void GraphView::applyLayout() {
-  int n = nodes_.size();
+  std::size_t n = nodes_.size();
   if (n == 0) return;
   double radius = 100.0;
   int i = 0;
